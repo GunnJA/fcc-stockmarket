@@ -1,6 +1,7 @@
 let chart;
 let lastYear = new Date();
 lastYear.setFullYear( lastYear.getFullYear() - 1 );
+let coinList = [];
 
 $( window ).load(function() {
 	$.get(`/getexisting`, function(obj) {
@@ -10,7 +11,9 @@ $( window ).load(function() {
     for (i=0;i<coins.length;i+=1) {
       let coin = coins[i];
       console.log(coin);
+      coinList.push(coin);
       chartUpdater(obj[coin]);
+      buttonBuilder(coin);
     }
 	});
 });
@@ -45,3 +48,37 @@ function chartUpdater(arr) {
   chart.render();
 }
 
+function buttonBuilder(coin) {
+  let HTMLStr = `<button id="${coin}Butt">${coin}</button><br>`
+  $("#underChart").append(HTMLStr);
+}
+
+$("#underChart").on('click', 'button', function(event) {
+    event.preventDefault();
+    let loc = $("#locInput").val();
+    $.get(`/search?city=${loc}`, function(obj) {
+      //console.log("pollspace",obj);
+      displayResults(obj);
+    });
+});
+
+$("#addButt").on('click', function(event) {
+    event.preventDefault();
+    let coin = $("#addText").val().toUpperCase();
+    if (!coin) {
+      window.alert("Please enter the code of an existing coin")
+    } else if (coinList.includes(coin)) {
+      window.alert("This coin is already listed")
+    } else {
+      console.log(`/add?coin=${coin}`);
+      $.get(`/add?coin=${coin}`, function(obj) {
+        if (obj[coin] === "invalid") {
+          window.alert(`Sorry, couldnt find any data for ${coin}, try another one`);
+        } else {
+          console.log("newCoin",obj);
+          buttonBuilder(coin);
+          chartUpdater(obj[coin]);
+        }
+      });
+    }
+});

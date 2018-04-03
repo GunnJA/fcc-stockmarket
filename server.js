@@ -53,13 +53,17 @@ function apiReq(coin) {
       let newStr = body.toString();
       let newJson = JSON.parse(newStr);
       let weeklyPrices = newJson["Time Series (Digital Currency Weekly)"];
-      let arrKeys = Object.keys(weeklyPrices);
-      let pricesArr = arrKeys.map(function(item) {
-        let iter = weeklyPrices[item];
-        let arr = [item, parseInt(iter["1a. open (USD)"])];
-        return arr;
-      })
-      resolve(pricesArr);
+      if (weeklyPrices === undefined) {
+        reject("invalid")
+      } else {
+        let arrKeys = Object.keys(weeklyPrices);
+        let pricesArr = arrKeys.map(function(item) {
+          let iter = weeklyPrices[item];
+          let arr = [item, parseInt(iter["1a. open (USD)"])];
+          return arr;
+        })
+        resolve(pricesArr);
+      }
     });
   });
 }
@@ -69,16 +73,24 @@ var listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
 
-app.get("/get", function (req, res) {
+app.get("/add", function (req, res) {
   let coin = req.query.coin;
+  let newCoinObj = {};
+  console.log("coin",coin);
   apiReq(coin).then(function(obj) {
-    res.send({coin : obj});
+    coinList.push(coin);
+    coinObj[coin] = obj;
+    console.log(coinList);
+    newCoinObj[coin] = obj;
+    res.send(newCoinObj);
+  }, function(reason) {
+    newCoinObj[coin] = reason;
+    res.send(newCoinObj);    
   });
 });
 
 app.get("/getexisting", function (req, res) {
   if (coinObj) {
-    console.log(coinObj);
     res.send(coinObj);
   }
 });
