@@ -4,7 +4,7 @@ const app = express();
 const request = require("request");
 let coinList = [ 'BTC','ETH','LTC' ];
 let coinObj;
-
+//comment
 startingCoins(coinList).then(function(obj) {
   coinObj = Object.assign({}, obj);
 })
