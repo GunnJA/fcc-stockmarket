@@ -1,10 +1,12 @@
 const express = require('express');
-const http = require("https");
 const app = express();
+const server = require('http').createServer(app)
+let io = require('socket.io');
+io = io.listen(server);
 const request = require("request");
 let coinList = [ 'BTC','ETH','LTC' ];
 let coinObj;
-//comment
+
 startingCoins(coinList).then(function(obj) {
   coinObj = Object.assign({}, obj);
 })
@@ -26,11 +28,23 @@ function startingCoins(arr) {
 
 // http://expressjs.com/en/starter/static-files.html
 // (folder used)
-app.use(express.static('client'));
+app.use(express.static(__dirname + '/client'));
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (req, res) {
   res.sendfile('index.html');
+});
+
+// listen for requests :)
+var listener = server.listen(process.env.PORT, function () {
+  console.log('Your app is listening on port ' + listener.address().port);
+});
+
+io.sockets.on('connection', function (socket) {
+  socket.on('add coin', function (data) {
+    console.log("socket",data);
+    io.sockets.emit('add coin',data);
+  });
 });
 
 function options(coin) {
@@ -67,11 +81,6 @@ function apiReq(coin) {
     });
   });
 }
-
-// listen for requests :)
-var listener = app.listen(process.env.PORT, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
-});
 
 app.get("/add", function (req, res) {
   let coin = req.query.coin;
