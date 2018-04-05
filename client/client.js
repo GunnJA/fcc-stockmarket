@@ -3,6 +3,12 @@ let lastYear = new Date();
 lastYear.setFullYear( lastYear.getFullYear() - 1 );
 let coinList = [];
 
+var socket = io.connect();
+
+socket.on('add coin', function (data) {
+  console.log("socket",data);
+});
+
 $( window ).load(function() {
 	$.get(`/getexisting`, function(obj) {
 	  let coins = Object.keys(obj);
@@ -71,6 +77,7 @@ $("#addButt").on('click', function(event) {
       window.alert("This coin is already listed")
     } else {
       console.log(`/add?coin=${coin}`);
+      socket.emit('add coin', coin);
       $.get(`/add?coin=${coin}`, function(obj) {
         if (obj[coin] === "invalid") {
           window.alert(`Sorry, couldnt find any data for ${coin}, try another one`);
