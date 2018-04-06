@@ -5,24 +5,32 @@ let coinList = [];
 
 var socket = io.connect();
 
-socket.on('add coin', function (data) {
+socket.on('update', function (data) {
   console.log("socket",data);
+  chartClear();
+  $("#underChart").empty();
+  dataUpdate(data);
 });
 
 $( window ).load(function() {
 	$.get(`/getexisting`, function(obj) {
-	  let coins = Object.keys(obj);
 	  console.log(obj);
     chartBuilder();
-    for (i=0;i<coins.length;i+=1) {
-      let coin = coins[i];
-      console.log(coin);
-      coinList.push(coin);
-      chartUpdater(obj[coin]);
-      buttonBuilder(coin);
-    }
+    dataUpdate(obj);
 	});
 });
+
+function dataUpdate(obj) {
+	let coins = Object.keys(obj);
+	console.log(obj);
+  for (i=0;i<coins.length;i+=1) {
+    let coin = coins[i];
+    coinList.push(coin);
+    chartUpdater(obj[coin]);
+    buttonBuilder(coin);
+  }
+};
+	
 
 function chartBuilder(arr) {
   chart = new CanvasJS.Chart("chartContainer",
@@ -37,6 +45,11 @@ function chartBuilder(arr) {
        data: [{
         dataPoints: []}]
     });
+  chart.render();
+}
+
+function chartClear() {
+	chart.options.data = [];
   chart.render();
 }
 
@@ -61,11 +74,8 @@ function buttonBuilder(coin) {
 
 $("#underChart").on('click', 'button', function(event) {
     event.preventDefault();
-    let loc = $("#locInput").val();
-    $.get(`/search?city=${loc}`, function(obj) {
-      //console.log("pollspace",obj);
-      displayResults(obj);
-    });
+    let coin = $(this).text();
+    socket.emit('del coin', coin);
 });
 
 $("#addButt").on('click', function(event) {
@@ -78,14 +88,14 @@ $("#addButt").on('click', function(event) {
     } else {
       console.log(`/add?coin=${coin}`);
       socket.emit('add coin', coin);
-      $.get(`/add?coin=${coin}`, function(obj) {
-        if (obj[coin] === "invalid") {
-          window.alert(`Sorry, couldnt find any data for ${coin}, try another one`);
-        } else {
-          console.log("newCoin",obj);
-          buttonBuilder(coin);
-          chartUpdater(obj[coin]);
-        }
-      });
+      //$.get(`/add?coin=${coin}`, function(obj) {
+      //  if (obj[coin] === "invalid") {
+      //    window.alert(`Sorry, couldnt find any data for ${coin}, try another one`);
+      //  } else {
+      //    console.log("newCoin",obj);
+      //    buttonBuilder(coin);
+      //    chartUpdater(obj[coin]);
+      //  }
+      //});
     }
 });
