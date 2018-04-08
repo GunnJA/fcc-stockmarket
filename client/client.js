@@ -21,11 +21,10 @@ $( window ).load(function() {
 });
 
 function dataUpdate(obj) {
-	let coins = Object.keys(obj);
+	coinList = Object.keys(obj);
 	console.log(obj);
-  for (i=0;i<coins.length;i+=1) {
-    let coin = coins[i];
-    coinList.push(coin);
+  for (i=0;i<coinList.length;i+=1) {
+    let coin = coinList[i];
     chartUpdater(obj[coin]);
     buttonBuilder(coin);
   }
