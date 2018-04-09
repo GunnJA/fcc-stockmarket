@@ -2,6 +2,7 @@ let chart;
 let lastYear = new Date();
 lastYear.setFullYear( lastYear.getFullYear() - 1 );
 let coinList = [];
+let io = require('/socket.io/socket.io.js');
 
 $( window ).load(function() {
 	$.get(`/getexisting`, function(obj) {
