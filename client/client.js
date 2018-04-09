@@ -21,7 +21,7 @@ function dataUpdate(obj) {
 };
 
 // Socket working
-var socket = io.connect();
+let socket = io.connect('https://fcc-stockmarket10.herokuapp.com/');
 
 socket.on('update', function (data) {
   console.log("socket",data);
