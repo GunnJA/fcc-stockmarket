@@ -3,15 +3,6 @@ let lastYear = new Date();
 lastYear.setFullYear( lastYear.getFullYear() - 1 );
 let coinList = [];
 
-var socket = io.connect();
-
-socket.on('update', function (data) {
-  console.log("socket",data);
-  chartClear();
-  $("#underChart").empty();
-  dataUpdate(data);
-});
-
 $( window ).load(function() {
 	$.get(`/getexisting`, function(obj) {
 	  console.log(obj);
@@ -22,15 +13,28 @@ $( window ).load(function() {
 
 function dataUpdate(obj) {
 	coinList = Object.keys(obj);
-	console.log(obj);
+	//console.log(obj);
   for (i=0;i<coinList.length;i+=1) {
     let coin = coinList[i];
-    chartUpdater(obj[coin]);
-    buttonBuilder(coin);
+    chartUpdater(obj[coin],coin);
   }
 };
-	
 
+// Socket working
+var socket = io.connect();
+
+socket.on('update', function (data) {
+  console.log("socket",data);
+  chartClear();
+  $("#underChart").empty();
+  dataUpdate(data);
+});
+
+socket.on('error', function (data) {
+  window.alert(data);
+});
+
+// Chart working
 function chartBuilder(arr) {
   chart = new CanvasJS.Chart("chartContainer",
     {title:{
@@ -38,10 +42,20 @@ function chartBuilder(arr) {
       axisX: {
         interval: 1,
         intervalType: "month",
-        title: "Month"},
+        title: "Month (click in legend to remove)"},
       axisY: {
         title: "USD"},
-       data: [{
+      legend: {
+        cursor:"pointer",
+        horizontalAlign: "center", // "center" , "right"
+        verticalAlign: "bottom",  // "top" , "bottom"
+        fontSize: 25,
+        itemclick: function(e){
+          let coin = e.dataSeries.legendText;
+          socket.emit('del coin', coin);
+        }
+      },
+      data: [{
         dataPoints: []}]
     });
   chart.render();
@@ -52,7 +66,7 @@ function chartClear() {
   chart.render();
 }
 
-function chartUpdater(arr) {
+function chartUpdater(arr,coin) {
   let dataPoints = [];
   $.each(arr, function(key, value){
     let itemDate = new Date(value[0]);
@@ -62,15 +76,11 @@ function chartUpdater(arr) {
 	});
 	console.log(dataPoints);
 	let chartData = chart.options.data;
-  chartData.push({ type: "line", dataPoints: dataPoints});
+  chartData.push({ showInLegend: true, legendText: coin, type: "line", dataPoints: dataPoints});
   chart.render();
 }
 
-function buttonBuilder(coin) {
-  let HTMLStr = `<button id="${coin}Butt">${coin}</button><br>`
-  $("#underChart").append(HTMLStr);
-}
-
+// Interactivity
 $("#underChart").on('click', 'button', function(event) {
     event.preventDefault();
     let coin = $(this).text();
@@ -87,14 +97,6 @@ $("#addButt").on('click', function(event) {
     } else {
       console.log(`/add?coin=${coin}`);
       socket.emit('add coin', coin);
-      //$.get(`/add?coin=${coin}`, function(obj) {
-      //  if (obj[coin] === "invalid") {
-      //    window.alert(`Sorry, couldnt find any data for ${coin}, try another one`);
-      //  } else {
-      //    console.log("newCoin",obj);
-      //    buttonBuilder(coin);
-      //    chartUpdater(obj[coin]);
-      //  }
-      //});
+      $("#addText").val("");
     }
 });
