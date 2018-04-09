@@ -21,7 +21,7 @@ function dataUpdate(obj) {
 };
 
 // Socket working
-let socket = io();
+let socket = io.connect();
 
 socket.on('update', function (data) {
   console.log("socket",data);
