@@ -2,7 +2,6 @@ let chart;
 let lastYear = new Date();
 lastYear.setFullYear( lastYear.getFullYear() - 1 );
 let coinList = [];
-let io = require('/socket.io/socket.io.js');
 
 $( window ).load(function() {
 	$.get(`/getexisting`, function(obj) {
@@ -22,7 +21,7 @@ function dataUpdate(obj) {
 };
 
 // Socket working
-let socket = io();
+let socket = io.connect();
 
 socket.on('update', function (data) {
   console.log("socket",data);
