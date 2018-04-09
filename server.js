@@ -43,8 +43,23 @@ var listener = server.listen(process.env.PORT, function () {
 io.sockets.on('connection', function (socket) {
   socket.on('add coin', function (data) {
     console.log("socket",data);
-    io.sockets.emit('add coin',data);
+    let coin = data;
+    let newCoinObj = {};
+    apiReq(coin).then(function(obj) {
+      coinList.push(coin);
+      coinObj[coin] = obj;
+      console.log(coinList);
+      io.sockets.emit('update',coinObj);
+    }, function(reason) {
+      io.sockets.emit('error', reason + " coin");   
+    });
   });
+  socket.on('del coin', function (data) {
+    console.log("socketDel",data);
+    delete coinObj[data];
+    coinList = coinList.filter(item => item != data);
+    io.sockets.emit('update',coinObj);   
+  });  
 });
 
 function options(coin) {
@@ -81,22 +96,6 @@ function apiReq(coin) {
     });
   });
 }
-
-app.get("/add", function (req, res) {
-  let coin = req.query.coin;
-  let newCoinObj = {};
-  console.log("coin",coin);
-  apiReq(coin).then(function(obj) {
-    coinList.push(coin);
-    coinObj[coin] = obj;
-    console.log(coinList);
-    newCoinObj[coin] = obj;
-    res.send(newCoinObj);
-  }, function(reason) {
-    newCoinObj[coin] = reason;
-    res.send(newCoinObj);    
-  });
-});
 
 app.get("/getexisting", function (req, res) {
   if (coinObj) {
