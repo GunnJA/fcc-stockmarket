@@ -32,7 +32,7 @@ app.use(express.static(__dirname + '/client'));
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (req, res) {
-  res.sendfile('index.html');
+  res.sendfile('./index.html');
 });
 
 // listen for requests :)
